@@ -27,13 +27,14 @@ ConVar mp_timelimit_improved_visibility;
 ConVar mp_roundtime;
 ConVar round_time_override;
 ConVar sm_improvedtimers_chat;
+ConVar mp_timelimit_improved_threshold;
 
 public Plugin myinfo =
 {
 	name = "Improved Match Timer",
 	author = "Dooby Skoo",
 	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP.",
-	version = "1.2.1",
+	version = "1.3.0b1",
 	url = "https://github.com/dewbsku"
 };
 
@@ -43,6 +44,7 @@ public void OnPluginStart(){
     mp_roundtime = CreateConVar("mp_roundtime", "-1", "The length (in seconds) of the round timer on 5CP and KOTH. -1 Default gametype behavior (default)", FCVAR_NONE, true, -1.0, false);
     round_time_override = CreateConVar("round_time_override", "-1", "The length (in seconds) of the round timer on 5CP and KOTH. -1 Default gametype behavior (default)", FCVAR_NONE, true, -1.0, false);
     sm_improvedtimers_chat = CreateConVar("sm_improvedtimers_chat", "1", "If 1, prints timer related notifications to chat.", FCVAR_NONE, true, 0.0, true, 0.0);
+    mp_timelimit_improved_threshold = CreateConVar("mp_timelimit_improved_threshold","1","The win difference threshold for activating the improved match timer features. Anything above this number of rounds between the teams will end the match at the end of the timer.", FCVAR_NONE, true, 0.0, true, 5.0);
     cvar_timelimit = FindConVar("mp_timelimit");
     cvar_restartgame = FindConVar("mp_restartgame");
     cvar_winlimit = FindConVar("mp_winlimit");
@@ -77,7 +79,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 {
 	if (mp_roundtime.IntValue < 0)
 		return;
-	
+
 	if (StrEqual(classname, "team_round_timer"))
 	{
         SDKHook(entity, SDKHook_SpawnPost, timer_spawn_post);
@@ -130,7 +132,14 @@ public Action CheckRoundTime(Handle timer){
     if(timeleft>=300 && timeleft%300==0 && (timeleft!=lastTimeReported) && sm_improvedtimers_chat.BoolValue) DisplayClockInfo(timeleft);
     if(timeleft<300 && timeleft%60==0 && (timeleft!=lastTimeReported) && sm_improvedtimers_chat.BoolValue) DisplayClockInfo(timeleft);
     lastTimeReported = timeleft;
+    // mp_timelimit_improved_threshold.IntValue;
     if(timeleft<=1){
+        if(mp_timelimit_improved_threshold.IntValue > intAbs(GetTeamScore(2) - GetTeamScore(3))) {
+            // The threshold has been breached, and the timer is up. End the game.
+            if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("Win Difference threshold has been met, this match is over.");
+            timer2 = INVALID_HANDLE;
+            return Plugin_Stop;
+        }
         ServerCommand("mp_timelimit 0");
         int newRoundLimit = GetTeamScore(3) + 1;
         if(GetTeamScore(2)+1>GetTeamScore(3)+1) newRoundLimit = GetTeamScore(2)+1;
@@ -141,9 +150,9 @@ public Action CheckRoundTime(Handle timer){
         }
         for(int client=1;client<=MAXPLAYERS;client++){
             if(IsValidClient(client)){
-                if(GetClientTeam(client) == 2) PrintToChat(client, "Win %d more round%s to win the match!", 
+                if(GetClientTeam(client) == 2) PrintToChat(client, "Win %d more round%s to win the match!",
                     newRoundLimit-GetTeamScore(2), (newRoundLimit-GetTeamScore(2)!=1) ? "s":"");
-                if(GetClientTeam(client) == 3) PrintToChat(client, "Win %d more round%s to win the match!", 
+                if(GetClientTeam(client) == 3) PrintToChat(client, "Win %d more round%s to win the match!",
                     newRoundLimit-GetTeamScore(3), (newRoundLimit-GetTeamScore(3)!=1) ? "s":"");
             }
         }
@@ -154,9 +163,9 @@ public Action CheckRoundTime(Handle timer){
         ServerCommand("mp_timelimit 0");
         for(int client=1;client<=MAXPLAYERS;client++){
             if(IsValidClient(client)){
-                if(GetClientTeam(client) == 2) PrintToChat(client, "Win %d more round%s to win the match!", 
+                if(GetClientTeam(client) == 2) PrintToChat(client, "Win %d more round%s to win the match!",
                     5-GetTeamScore(2), (5-GetTeamScore(2)!=1) ? "s":"");
-                if(GetClientTeam(client) == 3) PrintToChat(client, "Win %d more round%s to win the match!", 
+                if(GetClientTeam(client) == 3) PrintToChat(client, "Win %d more round%s to win the match!",
                     5-GetTeamScore(3), (5-GetTeamScore(3)!=1) ? "s":"");
             }
         }
@@ -168,6 +177,10 @@ public Action CheckRoundTime(Handle timer){
 
 bool IsValidClient(int client){
 	return ( client > 0 && client <= MaxClients && IsClientInGame(client) );
+}
+
+int intAbs(int x){
+    return (x >= 0) ? x : -x;
 }
 
 public void DisplayClockInfo(int timeleft){
