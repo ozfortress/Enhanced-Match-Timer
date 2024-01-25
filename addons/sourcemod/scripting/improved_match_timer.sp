@@ -55,6 +55,7 @@ public void OnPluginStart(){
 public Action OnExec(int client, const char[] command, int argc){
     winlimit_original = -1;
     timelimit_original = -1;
+    return Plugin_Handled;
 }
 
 public void OnMapStart()
@@ -77,7 +78,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 {
 	if (mp_roundtime.IntValue < 0)
 		return;
-	
+
 	if (StrEqual(classname, "team_round_timer"))
 	{
         SDKHook(entity, SDKHook_SpawnPost, timer_spawn_post);
@@ -122,6 +123,7 @@ public Action WaitTime(Handle timer){
     doOnRestart = true;
     timer2 = CreateTimer(0.5, CheckRoundTime, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
     timer1 = INVALID_HANDLE;
+    return Plugin_Handled;
 }
 
 public Action CheckRoundTime(Handle timer){
@@ -141,9 +143,9 @@ public Action CheckRoundTime(Handle timer){
         }
         for(int client=1;client<=MAXPLAYERS;client++){
             if(IsValidClient(client)){
-                if(GetClientTeam(client) == 2) PrintToChat(client, "Win %d more round%s to win the match!", 
+                if(GetClientTeam(client) == 2) PrintToChat(client, "Win %d more round%s to win the match!",
                     newRoundLimit-GetTeamScore(2), (newRoundLimit-GetTeamScore(2)!=1) ? "s":"");
-                if(GetClientTeam(client) == 3) PrintToChat(client, "Win %d more round%s to win the match!", 
+                if(GetClientTeam(client) == 3) PrintToChat(client, "Win %d more round%s to win the match!",
                     newRoundLimit-GetTeamScore(3), (newRoundLimit-GetTeamScore(3)!=1) ? "s":"");
             }
         }
@@ -154,9 +156,9 @@ public Action CheckRoundTime(Handle timer){
         ServerCommand("mp_timelimit 0");
         for(int client=1;client<=MAXPLAYERS;client++){
             if(IsValidClient(client)){
-                if(GetClientTeam(client) == 2) PrintToChat(client, "Win %d more round%s to win the match!", 
+                if(GetClientTeam(client) == 2) PrintToChat(client, "Win %d more round%s to win the match!",
                     5-GetTeamScore(2), (5-GetTeamScore(2)!=1) ? "s":"");
-                if(GetClientTeam(client) == 3) PrintToChat(client, "Win %d more round%s to win the match!", 
+                if(GetClientTeam(client) == 3) PrintToChat(client, "Win %d more round%s to win the match!",
                     5-GetTeamScore(3), (5-GetTeamScore(3)!=1) ? "s":"");
             }
         }
