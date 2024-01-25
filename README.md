@@ -27,4 +27,4 @@ The Progressive Ruleset ("Pro Ruleset" for short) incorporates this plugin that 
 
  sm_improvedtimers_chat: If 1 (default), prints timer related notifications to chat.
 
- mp_timelimit_improved_threshold: The win difference threshold for activating the improved match timer features. Anything above this number of rounds between the teams will end the match at the end of the timer.
+ mp_timelimit_improved_threshold: The win difference threshold for activating the improved match timer features. Anything above this number of rounds between the teams will end the match at the end of the timer.  Set to -1 to disable (default)

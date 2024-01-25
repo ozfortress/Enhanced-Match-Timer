@@ -34,7 +34,7 @@ public Plugin myinfo =
 	name = "Improved Match Timer",
 	author = "Dooby Skoo",
 	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP.",
-	version = "1.3.0b1",
+	version = "1.3.0b2",
 	url = "https://github.com/dewbsku"
 };
 
@@ -44,7 +44,7 @@ public void OnPluginStart(){
     mp_roundtime = CreateConVar("mp_roundtime", "-1", "The length (in seconds) of the round timer on 5CP and KOTH. -1 Default gametype behavior (default)", FCVAR_NONE, true, -1.0, false);
     round_time_override = CreateConVar("round_time_override", "-1", "The length (in seconds) of the round timer on 5CP and KOTH. -1 Default gametype behavior (default)", FCVAR_NONE, true, -1.0, false);
     sm_improvedtimers_chat = CreateConVar("sm_improvedtimers_chat", "1", "If 1, prints timer related notifications to chat.", FCVAR_NONE, true, 0.0, true, 0.0);
-    mp_timelimit_improved_threshold = CreateConVar("mp_timelimit_improved_threshold","1","The win difference threshold for activating the improved match timer features. Anything above this number of rounds between the teams will end the match at the end of the timer.", FCVAR_NONE, true, 0.0, true, 5.0);
+    mp_timelimit_improved_threshold = CreateConVar("mp_timelimit_improved_threshold","-1","The win difference threshold for activating the improved match timer features. Anything above this number of rounds between the teams will end the match at the end of the timer. Set to -1 to disable (default)", FCVAR_NONE, true, 0.0, true, 5.0);
     cvar_timelimit = FindConVar("mp_timelimit");
     cvar_restartgame = FindConVar("mp_restartgame");
     cvar_winlimit = FindConVar("mp_winlimit");
@@ -134,7 +134,7 @@ public Action CheckRoundTime(Handle timer){
     lastTimeReported = timeleft;
     // mp_timelimit_improved_threshold.IntValue;
     if(timeleft<=1){
-        if(mp_timelimit_improved_threshold.IntValue > intAbs(GetTeamScore(2) - GetTeamScore(3))) {
+        if(mp_timelimit_improved_threshold.IntValue > -1 && mp_timelimit_improved_threshold.IntValue > intAbs(GetTeamScore(2) - GetTeamScore(3))) {
             // The threshold has been breached, and the timer is up. End the game.
             if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("Win Difference threshold has been met, this match is over.");
             timer2 = INVALID_HANDLE;
