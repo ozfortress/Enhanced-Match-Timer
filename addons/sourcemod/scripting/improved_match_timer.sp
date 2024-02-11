@@ -34,7 +34,7 @@ public Plugin myinfo =
 	name = "Improved Match Timer",
 	author = "Dooby Skoo",
 	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP.",
-	version = "1.3.0b2",
+	version = "1.3.0b3",
 	url = "https://github.com/dewbsku"
 };
 
@@ -134,7 +134,8 @@ public Action CheckRoundTime(Handle timer){
     lastTimeReported = timeleft;
     // mp_timelimit_improved_threshold.IntValue;
     if(timeleft<=1){
-        if(mp_timelimit_improved_threshold.IntValue > -1 && mp_timelimit_improved_threshold.IntValue > intAbs(GetTeamScore(2) - GetTeamScore(3))) {
+        // If the Threshold is set, and the difference in wins is greater than the threshold, end the game
+        if(mp_timelimit_improved_threshold.IntValue > -1 && mp_timelimit_improved_threshold.IntValue < intAbs(GetTeamScore(2) - GetTeamScore(3))) {
             // The threshold has been breached, and the timer is up. End the game.
             if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("Win Difference threshold has been met, this match is over.");
             timer2 = INVALID_HANDLE;
