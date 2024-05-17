@@ -34,7 +34,7 @@ public Plugin myinfo =
 	name = "Improved Match Timer",
 	author = "Dooby Skoo",
 	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP.",
-	version = "1.3.0b4",
+	version = "1.3.0",
 	url = "https://github.com/dewbsku"
 };
 
