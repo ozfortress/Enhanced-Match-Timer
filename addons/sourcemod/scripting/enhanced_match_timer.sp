@@ -1,3 +1,12 @@
+/////////////////////////////////
+// Enhanced Match Timer        //
+// Credit to dewbsku on github //
+// Hey man, you didn't endorse //
+// this feature, but some      //
+// people wanted it enough to  //
+// warrant me doing this. GPL3 //
+// supports me doing this too. //
+/////////////////////////////////
 #include <sourcemod>
 #include <sdkhooks>
 #include <sdktools>
@@ -31,11 +40,11 @@ ConVar mp_timelimit_improved_threshold;
 
 public Plugin myinfo =
 {
-	name = "Improved Match Timer",
-	author = "Dooby Skoo",
-	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP.",
+	name = "Enhanced Match Timer (formerly Improved Match Timer)",
+	author = "Shigbeard (originally by Dooby Skoo)",
+	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP, optionally after a defined threshold of round win difference.",
 	version = "1.3.0",
-	url = "https://github.com/dewbsku"
+	url = "https://github.com/Shigbeard"
 };
 
 public void OnPluginStart(){
