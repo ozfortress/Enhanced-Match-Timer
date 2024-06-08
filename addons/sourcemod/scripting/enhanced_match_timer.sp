@@ -63,6 +63,25 @@ public void OnPluginStart(){
     AddCommandListener(OnExec, "exec");
 }
 
+public void OnConfigsExecuted()
+{
+    // Detect if the original plugin is running, disable it if it is.
+    char filename[200]; // Shamelessly stolen from Sourcebans++
+    BuildPath(Path_SM, filename, sizeof(filename), "plugins/improved_match_timer.smx");
+    if(FileExists(filename)){
+        PrintToServer("Improved Match Timer detected, disabling it in favor of Enhanced Match Timer (we offer the same features, but with more options).");
+        PrintToServer("For more information, see https://github.com/b4nnyBot/Progressive-Ruleset-Timer-Plugins/pull/2");
+        PrintToServer("If you'd like to use the original file instead, we've moved it to plugins/disabled/improved_match_timer.smx. Please uninstall or disable this plugin before restoring.");
+        char newfilename[200];
+        BuildPath(Path_SM, newfilename, sizeof(newfilename), "plugins/disabled/improved_match_timer.smx");
+        ServerCommand("sm plugins unload improved_match_timer");
+        if (FileExists(newfilename)) {
+            DeleteFile(newfilename);
+        }
+        RenameFile(filename, newfilename);
+    }
+}
+
 public Action OnExec(int client, const char[] command, int argc){
     winlimit_original = -1;
     timelimit_original = -1;
