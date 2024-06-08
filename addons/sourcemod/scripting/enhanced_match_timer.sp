@@ -43,7 +43,7 @@ public Plugin myinfo =
 	name = "Enhanced Match Timer (formerly Improved Match Timer)",
 	author = "Shigbeard (originally by Dooby Skoo)",
 	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP, optionally after a defined threshold of round win difference.",
-	version = "1.3.0",
+	version = "1.3.1",
 	url = "https://github.com/Shigbeard"
 };
 
@@ -53,7 +53,7 @@ public void OnPluginStart(){
     mp_roundtime = CreateConVar("mp_roundtime", "-1", "The length (in seconds) of the round timer on 5CP and KOTH. -1 Default gametype behavior (default)", FCVAR_NONE, true, -1.0, false);
     round_time_override = CreateConVar("round_time_override", "-1", "The length (in seconds) of the round timer on 5CP and KOTH. -1 Default gametype behavior (default)", FCVAR_NONE, true, -1.0, false);
     sm_improvedtimers_chat = CreateConVar("sm_improvedtimers_chat", "1", "If 1, prints timer related notifications to chat.", FCVAR_NONE, true, 0.0, true, 0.0);
-    mp_timelimit_improved_threshold = CreateConVar("mp_timelimit_improved_threshold","-1","The win difference threshold for activating the improved match timer features. Anything above this number of rounds between the teams will end the match at the end of the timer. Set to -1 to disable (default)", FCVAR_NONE, true, -1.0, true, 5.0);
+    mp_timelimit_improved_threshold = CreateConVar("mp_timelimit_improved_threshold","-1","The win difference threshold for activating the enhanced match timer features. Anything above this number of rounds between the teams will end the match at the end of the timer. Set to -1 to disable (default)", FCVAR_NONE, true, -1.0, true, 5.0);
     cvar_timelimit = FindConVar("mp_timelimit");
     cvar_restartgame = FindConVar("mp_restartgame");
     cvar_winlimit = FindConVar("mp_winlimit");
@@ -147,8 +147,8 @@ public void OnRestartGame(ConVar convar, char[] oldValue, char[] newValue){
 }
 
 public Action WaitTime(Handle timer){
-    if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("Running Improved Match Timer.");
-    PrintToServer("Running Improved Match Timer.");
+    if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("Running Enhanced Match Timer.");
+    PrintToServer("Running Enhanced Match Timer.");
     doOnRestart = true;
     timer2 = CreateTimer(0.5, CheckRoundTime, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
     timer1 = INVALID_HANDLE;
