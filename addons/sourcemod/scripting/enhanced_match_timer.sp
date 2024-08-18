@@ -43,7 +43,7 @@ public Plugin myinfo =
 	name = "Enhanced Match Timer (formerly Improved Match Timer)",
 	author = "Shigbeard (originally by Dooby Skoo)",
 	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP, optionally after a defined threshold of round win difference.",
-	version = "1.3.1",
+	version = "1.3.2",
 	url = "https://github.com/Shigbeard"
 };
 
