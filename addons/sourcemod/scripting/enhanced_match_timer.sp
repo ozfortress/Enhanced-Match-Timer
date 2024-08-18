@@ -52,7 +52,7 @@ public void OnPluginStart(){
     mp_timelimit_improved_visibility = CreateConVar("mp_timelimit_improved_visibility", "0", "Removes the timer when a team reaches 4 rounds won. 0 off (default), 1 on.", FCVAR_NONE, true, 0.0, true, 1.0);
     mp_roundtime = CreateConVar("mp_roundtime", "-1", "The length (in seconds) of the round timer on 5CP and KOTH. -1 Default gametype behavior (default)", FCVAR_NONE, true, -1.0, false);
     round_time_override = CreateConVar("round_time_override", "-1", "The length (in seconds) of the round timer on 5CP and KOTH. -1 Default gametype behavior (default)", FCVAR_NONE, true, -1.0, false);
-    sm_improvedtimers_chat = CreateConVar("sm_improvedtimers_chat", "1", "If 1, prints timer related notifications to chat.", FCVAR_NONE, true, 0.0, true, 0.0);
+    sm_improvedtimers_chat = CreateConVar("sm_improvedtimers_chat", "1", "If 1, prints timer related notifications to chat.", FCVAR_NONE, true, 0.0, true, 1.0);
     mp_timelimit_improved_threshold = CreateConVar("mp_timelimit_improved_threshold","-1","The win difference threshold for activating the enhanced match timer features. Anything above this number of rounds between the teams will end the match at the end of the timer. Set to -1 to disable (default)", FCVAR_NONE, true, -1.0, true, 5.0);
     cvar_timelimit = FindConVar("mp_timelimit");
     cvar_restartgame = FindConVar("mp_restartgame");
