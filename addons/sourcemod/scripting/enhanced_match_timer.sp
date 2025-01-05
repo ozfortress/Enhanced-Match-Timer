@@ -37,13 +37,16 @@ ConVar mp_roundtime;
 ConVar round_time_override;
 ConVar sm_improvedtimers_chat;
 ConVar mp_timelimit_improved_threshold;
+ConVar mp_timelimit_improved_timelimit;
+ConVar mp_timelimit_improved_tiebreaker;
+
 
 public Plugin myinfo =
 {
 	name = "Enhanced Match Timer (formerly Improved Match Timer)",
 	author = "Shigbeard (originally by Dooby Skoo)",
 	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP, optionally after a defined threshold of round win difference.",
-	version = "1.3.2",
+	version = "1.4.0",
 	url = "https://github.com/Shigbeard"
 };
 
@@ -54,6 +57,10 @@ public void OnPluginStart(){
     round_time_override = CreateConVar("round_time_override", "-1", "The length (in seconds) of the round timer on 5CP and KOTH. -1 Default gametype behavior (default)", FCVAR_NONE, true, -1.0, false);
     sm_improvedtimers_chat = CreateConVar("sm_improvedtimers_chat", "1", "If 1, prints timer related notifications to chat.", FCVAR_NONE, true, 0.0, true, 1.0);
     mp_timelimit_improved_threshold = CreateConVar("mp_timelimit_improved_threshold","-1","The win difference threshold for activating the enhanced match timer features. Anything above this number of rounds between the teams will end the match at the end of the timer. Set to -1 to disable (default)", FCVAR_NONE, true, -1.0, true, 5.0);
+
+    mp_timelimit_improved_timelimit = CreateConVar("mp_timelimit_improved_timelimit","0","The timelimit to set the server to when the round timer runs out. Set to 0 to for infinite (default)", FCVAR_NONE, true, 0.0, false);
+    mp_timelimit_improved_tiebreaker = CreateConVar("mp_timelimit_improved_tiebreaker","0","Which method to use for handling a tie/draw in overtime. 0 - end game (default), 1 - grant final point to team with the most control points", FCVAR_NONE, true, 0.0, true, 1.0);
+
     cvar_timelimit = FindConVar("mp_timelimit");
     cvar_restartgame = FindConVar("mp_restartgame");
     cvar_winlimit = FindConVar("mp_winlimit");
@@ -61,6 +68,7 @@ public void OnPluginStart(){
     mp_roundtime.AddChangeHook(OnChangeRoundTime);
     round_time_override.AddChangeHook(OnChangeRoundTime);
     AddCommandListener(OnExec, "exec");
+
 }
 
 public void OnConfigsExecuted()
@@ -85,6 +93,7 @@ public void OnConfigsExecuted()
 public Action OnExec(int client, const char[] command, int argc){
     winlimit_original = -1;
     timelimit_original = -1;
+    return Plugin_Continue;
 }
 
 public void OnMapStart()
@@ -143,8 +152,7 @@ public void OnRestartGame(ConVar convar, char[] oldValue, char[] newValue){
     else if(doOnRestart){
         SafelyKillTimer(timer1);
         SafelyKillTimer(timer2);
-    }
-}
+    }}
 
 public Action WaitTime(Handle timer){
     if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("Running Enhanced Match Timer.");
@@ -152,6 +160,68 @@ public Action WaitTime(Handle timer){
     doOnRestart = true;
     timer2 = CreateTimer(0.5, CheckRoundTime, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
     timer1 = INVALID_HANDLE;
+    return Plugin_Continue;
+}
+
+public Action CheckTieBreaker(Handle timer){
+    int timeleft;
+    GetMapTimeLeft(timeleft);
+    PrintToServer("Checking Tiebreaker %d", timeleft);
+    bool tiebreaker_mode = GetConVarBool(mp_timelimit_improved_tiebreaker);
+    if(timeleft<=1){
+        if(tiebreaker_mode){
+            // First up - is a team in the lead?
+            int redScore = GetTeamScore(2);
+            int blueScore = GetTeamScore(3);
+            if (redScore != blueScore){
+                ServerCommand("mp_timelimit 1");
+                if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("The game ends now!");
+                timer2 = INVALID_HANDLE;
+                return Plugin_Stop;
+            }
+            else{
+                // No team is in the lead, check control points
+                // find all control points
+                int ent = -1;
+                int redCaps = 0;
+                int blueCaps = 0;
+                int MasterControlNode = -1;
+                MasterControlNode = FindEntityByClassname(-1, "team_control_point_master");
+                while ((ent = FindEntityByClassname(ent, "team_control_point")) > 0){
+                    if (IsValidEntity(ent) && ent > 0){
+                        int team = GetEntProp(ent, Prop_Data, "m_iTeamNum");
+                        if (team == 2) redCaps++;
+                        if (team == 3) blueCaps++;
+                    }
+                }
+                if (redCaps > blueCaps){
+                    // Grant a round to red
+                    // SetTeamScore(2, redScore + 1);
+                    AcceptEntityInput(MasterControlNode, "SetWinnerAndForceCaps 2");
+                    if (sm_improvedtimers_chat.BoolValue) PrintToChatAll("Red team wins the tiebreaker!");
+                } else if(blueCaps > redCaps){
+                    // Grant a round to blue
+                    // SetTeamScore(3, blueScore + 1);
+                    AcceptEntityInput(MasterControlNode, "SetWinnerAndForceCaps 3");
+                    if (sm_improvedtimers_chat.BoolValue) PrintToChatAll("Blu team wins the tiebreaker!");
+                }
+                else{
+                    // No team has more control points than the other, end the game in a draw
+                    if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("The game ends in a draw!");
+                }
+                ServerCommand("mp_timelimit 1");
+                timer2 = INVALID_HANDLE;
+                return Plugin_Stop;
+            }
+
+        }
+        else{
+            if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("The game ends in a draw!");
+        }
+        timer2 = INVALID_HANDLE;
+        return Plugin_Stop;
+    }
+    return Plugin_Continue;
 }
 
 public Action CheckRoundTime(Handle timer){
@@ -169,7 +239,17 @@ public Action CheckRoundTime(Handle timer){
             timer2 = INVALID_HANDLE;
             return Plugin_Stop;
         }
-        ServerCommand("mp_timelimit 0");
+        // We're going into overtime, check if we need to set a timelimit
+        if(mp_timelimit_improved_timelimit.IntValue > 0){
+            // get the current timelimit
+            int timelimit = GetConVarInt(cvar_timelimit);
+            ServerCommand("mp_timelimit %d", mp_timelimit_improved_timelimit.IntValue + timelimit);
+            if(sm_improvedtimers_chat.BoolValue) PrintToChatAll("Overtime has begun, timelimit extended by %d", mp_timelimit_improved_timelimit.IntValue);
+            if(sm_improvedtimers_chat.BoolValue && mp_timelimit_improved_tiebreaker.IntValue==1) PrintToChatAll("Tiebreaker: Team with the most control points will be granted the tie-breaking point.");
+            if(sm_improvedtimers_chat.BoolValue && mp_timelimit_improved_tiebreaker.IntValue==0) PrintToChatAll("Tiebreaker: If no team wins, the game will end in a draw.");
+        } else {
+            ServerCommand("mp_timelimit 0");
+        }
         int newRoundLimit = GetTeamScore(3) + 1;
         if(GetTeamScore(2)+1>GetTeamScore(3)+1) newRoundLimit = GetTeamScore(2)+1;
         if(newRoundLimit>5) newRoundLimit = 5;
@@ -185,8 +265,15 @@ public Action CheckRoundTime(Handle timer){
                     newRoundLimit-GetTeamScore(3), (newRoundLimit-GetTeamScore(3)!=1) ? "s":"");
             }
         }
-        timer2 = INVALID_HANDLE;
-        return Plugin_Stop;
+        if (mp_timelimit_improved_tiebreaker.IntValue==1){
+            SafelyKillTimer(timer2);
+            timer2 = CreateTimer(0.5, CheckTieBreaker, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+            return Plugin_Continue;
+        }
+        else{
+            timer2 = INVALID_HANDLE;
+            return Plugin_Stop;
+        }
     }
     if((GetTeamScore(2) >= 4 || GetTeamScore(3) >= 4) && mp_timelimit_improved_visibility.BoolValue){
         ServerCommand("mp_timelimit 0");
