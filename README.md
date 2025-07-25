@@ -38,6 +38,9 @@
 
  This feature is useful for leagues that wish to have a clear winner at the end of a match, and especially useeful for LANs.
 
+## Support for Arena Mode
+ Enabled with `mp_timelimit_improved_arena <0/1>`, this feature will allow the plugin to function in Arena mode maps (arena_ and arenares_ maps). Default off.
+
 # Why Use This Plugin instead of the Original?
  As mentioned earlier, the original plugin had a number of flaws for tournament structures that weren't a traditional 5CP Scrim or Official, however the maintainers of that plugin do not seem to see these issues as a problem. At the bequest of several league admins, I have taken it upon myself to fix these issues and provide a more robust plugin that can be used in a wider variety of settings.
 

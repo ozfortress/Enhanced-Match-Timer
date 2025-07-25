@@ -43,13 +43,16 @@ ConVar mp_timelimit_improved_threshold;
 ConVar mp_timelimit_improved_timelimit;
 ConVar mp_timelimit_improved_tiebreaker;
 
+// Enable for Arena mode
+ConVar mp_timelimit_improved_arena;
+
 
 public Plugin myinfo =
 {
 	name = "Enhanced Match Timer (formerly Improved Match Timer)",
 	author = "Shigbeard (originally by Dooby Skoo)",
 	description = "TF2 round win limit gets reduced after the map timer runs out on 5CP, optionally after a defined threshold of round win difference.",
-	version = "1.4.1",
+	version = "1.5.0",
 	url = "https://github.com/Shigbeard"
 };
 
@@ -63,6 +66,8 @@ public void OnPluginStart(){
 
     mp_timelimit_improved_timelimit = CreateConVar("mp_timelimit_improved_timelimit","0","The timelimit to set the server to when the round timer runs out. Set to 0 to for infinite (default)", FCVAR_NONE, true, 0.0, false);
     mp_timelimit_improved_tiebreaker = CreateConVar("mp_timelimit_improved_tiebreaker","0","Which method to use for handling a tie/draw in overtime. 0 - end game (default), 1 - grant final point to team with the most control points", FCVAR_NONE, true, 0.0, true, 1.0);
+
+    mp_timelimit_improved_arena = CreateConVar("mp_timelimit_improved_arena","0","Enable the plugin for Arena mode. 0 off (default), 1 on.", FCVAR_NONE, true, 0.0, true, 1.0);
 
     RegConsoleCmd("end_match", End_Match, "Ends the match immediately.", 0);
 
@@ -130,7 +135,12 @@ public void OnMapStart()
     winlimit_original = -1;
     timelimit_original = -1;
     GetCurrentMap(mapname, sizeof(mapname));
-    rightGamemode = (StrContains(mapname, "cp_", true) == 0);
+    if (GetConVarBool(mp_timelimit_improved_arena) == true)
+    {
+        rightGamemode = (StrContains(mapname, "arena_", true) == 0 || StrContains(mapname, "arenares_", true) == 0 || StrContains(mapname, "cp_", true) == 0);
+    } else {
+        rightGamemode = (StrContains(mapname, "cp_", true) == 0);
+    }
 }
 
 public void OnChangeRoundTime(ConVar convar, char[] oldValue, char[] newValue){
