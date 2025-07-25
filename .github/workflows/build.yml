@@ -25,6 +25,7 @@ jobs:
 
             - name: Compile Plugins
               run: |
+                mkdir ./plugins
                 cd ./scripting
                 pwd
                 spcomp -i"./include/" enhanced_match_timer.sp -o ../plugins/enhanced_match_timer.smx
